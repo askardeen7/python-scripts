@@ -1,0 +1,48 @@
+import mysql.connector
+from mysql.connector import Error
+
+def create_connection():
+    """Create connection to MySQL"""
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',        # or your MySQL server IP / hostname
+            user='root',             # your MySQL username
+            password='yourpassword', # your MySQL password
+            database='demodatabase'  # existing database name
+        )
+        if connection.is_connected():
+            print("✅ Connected to MySQL database!")
+            return connection
+    except Error as e:
+        print(f"❌ Error connecting to MySQL: {e}")
+        return None
+
+def create_table(connection):
+    """Create a sample table"""
+    cursor = connection.cursor()
+    try:
+        table_query = """
+        CREATE TABLE IF NOT EXISTS employees (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            department VARCHAR(100),
+            salary DECIMAL(10,2)
+        );
+        """
+        cursor.execute(table_query)
+        connection.commit()
+        print("✅ Table 'employees' created successfully!")
+    except Error as e:
+        print(f"❌ Error creating table: {e}")
+    finally:
+        cursor.close()
+
+def main():
+    connection = create_connection()
+    if connection:
+        create_table(connection)
+        connection.close()
+        print("🔒 MySQL connection closed.")
+
+if __name__ == "__main__":
+    main()
