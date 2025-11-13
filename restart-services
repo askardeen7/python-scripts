@@ -1,0 +1,12 @@
+import subprocess
+
+def restart_nginx():
+    try:
+        print("🔄 Restarting NGINX service...")
+        subprocess.run(["sudo", "systemctl", "restart", "nginx"], check=True)
+        print("✅ NGINX restarted successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Failed to restart NGINX: {e}")
+
+if __name__ == "__main__":
+    restart_nginx()
