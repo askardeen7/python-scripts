@@ -1,0 +1,40 @@
+import paramiko
+from scp import SCPClient
+import os
+from datetime import datetime
+
+# === CONFIGURATION ===
+SOURCE_PATH = "/home/ubuntu/data/"             # Directory to back up
+REMOTE_HOST = "192.168.1.20"                   # Destination server IP / Hostname
+REMOTE_USER = "ubuntu"                         # SSH username
+REMOTE_PATH = "/home/ubuntu/backups/"          # Destination directory
+SSH_KEY_PATH = "/home/ubuntu/.ssh/id_rsa"      # Path to your private key (.pem for AWS)
+# ======================
+
+def create_ssh_client(host, user, key_file):
+    """Establish SSH connection"""
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.connect(hostname=host, username=user, key_filename=key_file)
+    return client
+
+def backup_files():
+    """Backup files from local to remote server"""
+    print(f"🔐 Connecting to remote host {REMOTE_HOST}...")
+    ssh = create_ssh_client(REMOTE_HOST, REMOTE_USER, SSH_KEY_PATH)
+    scp = SCPClient(ssh.get_transport())
+
+    # Create timestamped backup folder on remote side
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    remote_backup_path = os.path.join(REMOTE_PATH, f"backup_{timestamp}")
+    ssh.exec_command(f"mkdir -p {remote_backup_path}")
+
+    print(f"📦 Transferring files from {SOURCE_PATH} → {remote_backup_path}")
+    scp.put(SOURCE_PATH, recursive=True, remote_path=remote_backup_path)
+
+    scp.close()
+    ssh.close()
+    print(f"✅ Backup completed successfully at {remote_backup_path}")
+
+if __name__ == "__main__":
+    backup_files()
