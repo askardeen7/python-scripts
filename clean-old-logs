@@ -1,0 +1,40 @@
+import os
+import time
+
+# Directory to clean up (e.g., /var/log, /home/ubuntu/logs, etc.)
+LOG_DIR = "/var/log"
+# Delete files older than this many days
+DAYS_THRESHOLD = 30
+
+def delete_old_logs(log_dir, days_threshold):
+    """Delete .log files older than N days."""
+    now = time.time()
+    cutoff = now - (days_threshold * 86400)  # seconds in N days
+
+    print(f"🧹 Scanning {log_dir} for log files older than {days_threshold} days...\n")
+
+    deleted_count = 0
+    for root, dirs, files in os.walk(log_dir):
+        for filename in files:
+            if filename.endswith(".log"):
+                file_path = os.path.join(root, filename)
+                file_mtime = os.path.getmtime(file_path)
+                if file_mtime < cutoff:
+                    age_days = int((now - file_mtime) / 86400)
+                    try:
+                        os.remove(file_path)
+                        print(f"🗑️ Deleted: {file_path} (Age: {age_days} days)")
+                        deleted_count += 1
+                    except Exception as e:
+                        print(f"❌ Could not delete {file_path}: {e}")
+
+    if deleted_count == 0:
+        print("✅ No old log files found.")
+    else:
+        print(f"\n✅ Cleanup complete — {deleted_count} old log files deleted.")
+
+def main():
+    delete_old_logs(LOG_DIR, DAYS_THRESHOLD)
+
+if __name__ == "__main__":
+    main()
